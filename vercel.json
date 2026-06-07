@@ -1,0 +1,20 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron?type=attendance_reminder",
+      "schedule": "0 6 * * 1-6"
+    },
+    {
+      "path": "/api/cron?type=commitment_reminder",
+      "schedule": "30 7 * * 1-6"
+    },
+    {
+      "path": "/api/cron?type=progress_reminder",
+      "schedule": "30 13 * * 1-6"
+    },
+    {
+      "path": "/api/cron?type=ceo_summary",
+      "schedule": "15 14 * * 1-6"
+    }
+  ]
+}
