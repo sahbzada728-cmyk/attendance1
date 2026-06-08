@@ -7,7 +7,9 @@ import { google, sheets_v4 } from 'googleapis';
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 
 function getAuth() {
-  const key = process.env.GOOGLE_SHEETS_PRIVATE_KEY?.replace(/\\n/g, '\n');
+  const key = process.env.GOOGLE_SHEETS_PRIVATE_KEY
+  ?.split('\\n')
+  .join('\n');
   if (!key || !process.env.GOOGLE_SHEETS_CLIENT_EMAIL) {
     throw new Error('Google Sheets credentials not configured. Set GOOGLE_SHEETS_CLIENT_EMAIL and GOOGLE_SHEETS_PRIVATE_KEY.');
   }
