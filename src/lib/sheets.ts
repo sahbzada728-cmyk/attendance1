@@ -1,9 +1,17 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+function getSupabaseClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!url || !key) {
+    throw new Error(
+      'Missing Supabase credentials. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY'
+    )
+  }
+
+  return createClient(url, key)
+}
 
 // Map sheet names to table names (Supabase uses lowercase with underscores)
 const TABLE_MAP: Record<string, string> = {
@@ -36,6 +44,7 @@ function getTableName(sheetName: string): string {
 export async function getAllRows<T = Record<string, unknown>>(
   sheetName: string
 ): Promise<T[]> {
+  const supabase = getSupabaseClient()
   const tableName = getTableName(sheetName)
 
   const { data, error } = await supabase.from(tableName).select('*')
@@ -52,6 +61,7 @@ export async function appendRow(
   sheetName: string,
   obj: Record<string, unknown>
 ): Promise<void> {
+  const supabase = getSupabaseClient()
   const tableName = getTableName(sheetName)
 
   const { error } = await supabase.from(tableName).insert([obj])
@@ -68,6 +78,7 @@ export async function findRowIndex(
   idField: string,
   idValue: string
 ): Promise<number> {
+  const supabase = getSupabaseClient()
   const tableName = getTableName(sheetName)
 
   const { data, error } = await supabase
@@ -93,6 +104,7 @@ export async function updateRowById(
   idValue: string,
   patch: Record<string, unknown>
 ): Promise<Record<string, unknown> | null> {
+  const supabase = getSupabaseClient()
   const tableName = getTableName(sheetName)
 
   // First, fetch the existing row
