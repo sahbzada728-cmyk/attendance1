@@ -1,6 +1,6 @@
 import type { NextAuthOptions, Session, User as NextAuthUser } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
-import { getAllRows, appendRow, makeId } from './sheets';
+//import { getAllRows, appendRow, makeId } from './supabase-repo'; // Changed from sheets
 import { getRequestIp, canAccessSystem } from './ip';
 import type { User, OfficeSettings } from '@/types';
 
@@ -17,7 +17,7 @@ export const APPROVED_EMAILS: Record<string, 'CEO_SUPER_ADMIN' | 'EMPLOYEE'> = {
 
 export async function getSettings(): Promise<OfficeSettings> {
   const rows = await getAllRows<OfficeSettings>('Office_Settings');
-  const s = rows.find(r => r.setting_id === 'default') || rows[0];
+  const s = rows.find((r: { setting_id: string; }) => r.setting_id === 'default') || rows[0];
   if (!s) {
     return {
       setting_id: 'default',
@@ -53,7 +53,7 @@ export async function getSettings(): Promise<OfficeSettings> {
 
 export async function getUserRecord(email: string): Promise<User | null> {
   const users = await getAllRows<User>('Users');
-  return users.find(u => u.email.toLowerCase() === email.toLowerCase()) || null;
+  return users.find((u: { email: string; }) => u.email.toLowerCase() === email.toLowerCase()) || null;
 }
 
 export const authOptions: NextAuthOptions = {
@@ -69,7 +69,7 @@ export const authOptions: NextAuthOptions = {
       const role = APPROVED_EMAILS[email];
       if (!role) return '/access-denied?reason=unapproved_email';
       
-      // Ensure user record exists in Sheets
+      // Ensure user record exists in Supabase
       try {
         const existing = await getUserRecord(email);
         if (!existing) {
@@ -88,8 +88,8 @@ export const authOptions: NextAuthOptions = {
           });
         }
       } catch (err) {
-        console.error('Could not write user to Sheets:', err);
-        // Don't block login if Sheets is not configured yet
+        console.error('Could not write user to Supabase:', err);
+        // Don't block login if Supabase write fails
       }
       return true;
     },
