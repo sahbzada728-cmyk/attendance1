@@ -43,23 +43,30 @@ export default function AttendancePage() {
   }, [isCeo]);
 
   async function markAttendance() {
-    setMarking(true);
-    setMsg(null);
+  setMarking(true);
+  setMsg(null);
+  try {
     const res = await fetch('/api/attendance', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: '{}',
     });
-    const data = await res.json();
+
+    const text = await res.text(); // Read as text first
+    const data = text ? JSON.parse(text) : {}; // Only parse if not empty
+
     if (res.ok) {
       setMsg({ type: 'success', text: `Attendance marked: ${data.status} at ${data.time_in}` });
       setAttendance(prev => [...prev, data]);
     } else {
-      setMsg({ type: 'error', text: data.error || 'Failed to mark attendance' });
+      setMsg({ type: 'error', text: data.error || `Server error: ${res.status}` });
     }
+  } catch (err) {
+    setMsg({ type: 'error', text: `Request failed: ${err}` });
+  } finally {
     setMarking(false);
   }
-
+}
   async function submitOverride(e: React.FormEvent) {
     e.preventDefault();
     setMsg(null);
