@@ -16,13 +16,40 @@ export default function AttendancePage() {
   const isCeo = (session?.user as any)?.role === 'CEO_SUPER_ADMIN';
 
   useEffect(() => {
-    fetch('/api/attendance').then(r => r.json()).then(setAttendance).finally(() => setLoading(false));
-    if (isCeo) fetch('/api/admin/employees').then(r => r.json()).then(setEmployees);
+    fetch('/api/attendance')
+      .then(r => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        return r.json();
+      })
+      .then(data => {
+        setAttendance(Array.isArray(data) ? data : []);
+      })
+      .catch(err => {
+        console.error('Failed to fetch attendance:', err);
+        setMsg({ type: 'error', text: `Failed to load attendance: ${err.message}` });
+        setAttendance([]);
+      })
+      .finally(() => setLoading(false));
+
+    if (isCeo) {
+      fetch('/api/admin/employees')
+        .then(r => {
+          if (!r.ok) throw new Error(`API error: ${r.status}`);
+          return r.json();
+        })
+        .then(data => setEmployees(Array.isArray(data) ? data : []))
+        .catch(err => console.error('Failed to fetch employees:', err));
+    }
   }, [isCeo]);
 
   async function markAttendance() {
-    setMarking(true); setMsg(null);
-    const res = await fetch('/api/attendance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    setMarking(true);
+    setMsg(null);
+    const res = await fetch('/api/attendance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    });
     const data = await res.json();
     if (res.ok) {
       setMsg({ type: 'success', text: `Attendance marked: ${data.status} at ${data.time_in}` });
@@ -34,8 +61,13 @@ export default function AttendancePage() {
   }
 
   async function submitOverride(e: React.FormEvent) {
-    e.preventDefault(); setMsg(null);
-    const res = await fetch('/api/attendance', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(override) });
+    e.preventDefault();
+    setMsg(null);
+    const res = await fetch('/api/attendance', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(override),
+    });
     const data = await res.json();
     if (res.ok) {
       setMsg({ type: 'success', text: `Override saved for employee.` });
