@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     rejection_reason: '',
     created_at: now,
     updated_at: now,
-    completed_at: '',
+    completed_at: null,  // NULL instead of empty string
   };
 
   await appendRow('Tasks', row);
@@ -67,7 +67,7 @@ export async function PATCH(req: NextRequest) {
       status: body.status,
       rejection_reason: body.rejection_reason || '',
       final_approval_status: body.status === 'Approved / Completed' ? 'Approved' : body.status === 'Rejected' ? 'Rejected' : old.final_approval_status,
-      completed_at: body.status === 'Approved / Completed' ? new Date().toISOString() : old.completed_at,
+      completed_at: body.status === 'Approved / Completed' ? new Date().toISOString() : old.completed_at || null,
       updated_at: new Date().toISOString(),
     };
   }
